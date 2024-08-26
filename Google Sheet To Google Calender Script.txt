@@ -1,0 +1,67 @@
+/** Copy This into Apps Script **/
+
+function scheduleShifts() {
+  /** Task 1) Open the Event Calendar. **/
+  var spreadsheet = SpreadsheetApp.getActiveSheet();
+  var calendarId = spreadsheet.getRange("C2:E2").getValue();
+  var eventCal = CalendarApp.getOwnedCalendarById(calendarId);
+
+  /** Task 2) Pull each shift information into the code, in a form that the code can understand. **/
+  var signups = spreadsheet.getRange("A5:E45").getValues();
+
+  /** Task 3) Do the work! **/
+  for (var x = 0; x < signups.length; x++) {
+    var shift = signups[x];
+
+    var title = shift[0];
+    var startTime = new Date(shift[1]);
+    var endTime = new Date(shift[2]);
+    var description = shift[3];
+    var color = shift[4];
+
+    // Create the event
+    var event = eventCal.createEvent(title, startTime, endTime);
+    event.setDescription(description);
+
+    // Set event color if provided
+    if (color) {
+      var colorId = getColorId(color);
+      if (colorId) {
+        event.setColor(colorId);
+      }
+    }
+
+    // Add a 24-hour email reminder
+    event.addEmailReminder(24 * 60); // 24 hours = 24 * 60 minutes
+
+    // Add a 2-hour popup reminder
+    event.addPopupReminder(2 * 60); // 2 hours = 2 * 60 minutes
+  }
+}
+
+/** Task 4) Make it easy to use. **/
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Sync to Calendar')
+    .addItem('Schedule shifts now.', 'scheduleShifts')
+    .addToUi();
+}
+
+/** Helper function to map color names to Google Calendar color IDs **/
+function getColorId(colorName) {
+  var colorMap = {
+    "Lavender": "1",
+    "Sage": "2",
+    "Grape": "3",
+    "Flamingo": "4",
+    "Banana": "5",
+    "Tangerine": "6",
+    "Peacock": "7",
+    "Graphite": "8",
+    "Blueberry": "9",
+    "Basil": "10",
+    "Tomato": "11"
+  };
+
+  return colorMap[colorName] || null;
+}
